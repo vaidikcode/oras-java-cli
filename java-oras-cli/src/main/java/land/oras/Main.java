@@ -91,8 +91,15 @@ public class Main implements Runnable {
                 "Enable debug mode"})
         private Boolean debug = false;
 
-    }
+        @CommandLine.Option(names = { "--insecure" }, description = {
+                "Allow insecure connections over HTTP"})
+        private Boolean insecure = false;
 
+        @CommandLine.Option(names = { "--skip-tls-verify" }, description = {
+                "Skip TLS verification"})
+        private Boolean skipTlsVerify = false;
+
+    }
     @CommandLine.Command(name = "blob-delete", description = "Delete a blob")
     public static class DeleteBlobCommand implements Callable<Integer> {
         private static final Logger LOG = LoggerFactory.getLogger(DeleteBlobCommand.class);
@@ -108,6 +115,8 @@ public class Main implements Runnable {
             LOG.info("Deleting blob...");
             ContainerRef containerRef = ContainerRef.parse(options.repository);
             Registry registry = Registry.Builder.builder()
+                    .withInsecure(options.insecure)
+                    .withSkipTlsVerify(options.skipTlsVerify)
                     .withAuthProvider(options.username != null && options.password != null ? new UsernamePasswordProvider(options.username, options.password) : new EnvironmentPasswordProvider())
                     .build();
             try {
@@ -140,6 +149,8 @@ public class Main implements Runnable {
             LOG.info("Pushing blob...");
             ContainerRef containerRef = ContainerRef.parse(options.repository);
             Registry registry = Registry.Builder.builder()
+                    .withInsecure(options.insecure)
+                    .withSkipTlsVerify(options.skipTlsVerify)
                     .withAuthProvider(options.username != null && options.password != null ? new UsernamePasswordProvider(options.username, options.password) : new EnvironmentPasswordProvider())
                     .build();
             try {
@@ -172,6 +183,8 @@ public class Main implements Runnable {
             LOG.info("Fetching blob...");
             ContainerRef containerRef = ContainerRef.parse(options.repository);
             Registry registry = Registry.Builder.builder()
+                    .withInsecure(options.insecure)
+                    .withSkipTlsVerify(options.skipTlsVerify)
                     .withAuthProvider(options.username != null && options.password != null ? new UsernamePasswordProvider(options.username, options.password) : new EnvironmentPasswordProvider())
                     .build();
             try {
@@ -204,6 +217,8 @@ public class Main implements Runnable {
             LOG.info("Pushing manifest...");
             ContainerRef containerRef = ContainerRef.parse(options.repository);
             Registry registry = Registry.Builder.builder()
+                    .withInsecure(options.insecure)
+                    .withSkipTlsVerify(options.skipTlsVerify)
                     .withAuthProvider(options.username != null && options.password != null ? new UsernamePasswordProvider(options.username, options.password) : new EnvironmentPasswordProvider())
                     .build();
             try {
@@ -233,6 +248,8 @@ public class Main implements Runnable {
             LOG.info("Deleting manifest...");
             ContainerRef containerRef = ContainerRef.parse(options.repository);
             Registry registry = Registry.Builder.builder()
+                    .withInsecure(options.insecure)
+                    .withSkipTlsVerify(options.skipTlsVerify)
                     .withAuthProvider(options.username != null && options.password != null ? new UsernamePasswordProvider(options.username, options.password) : new EnvironmentPasswordProvider())
                     .build();
             try {
@@ -265,6 +282,8 @@ public class Main implements Runnable {
             LOG.info("Fetching manifest...");
             ContainerRef containerRef = ContainerRef.parse(options.repository);
             Registry registry = Registry.Builder.builder()
+                    .withInsecure(options.insecure)
+                    .withSkipTlsVerify(options.skipTlsVerify)
                     .withAuthProvider(options.username != null && options.password != null ? new UsernamePasswordProvider(options.username, options.password) : new EnvironmentPasswordProvider())
                     .build();
             try {
@@ -304,6 +323,8 @@ public class Main implements Runnable {
             LOG.info("Pushing artifact...");
             ContainerRef containerRef = ContainerRef.parse(options.repository);
             Registry registry = Registry.Builder.builder()
+                    .withInsecure(options.insecure)
+                    .withSkipTlsVerify(options.skipTlsVerify)
                     .withAuthProvider(options.username != null && options.password != null ? new UsernamePasswordProvider(options.username, options.password) : new EnvironmentPasswordProvider())
                     .build();
             try {
@@ -328,8 +349,8 @@ public class Main implements Runnable {
         @CommandLine.Mixin
         private ReusableOptions options;
 
-        @CommandLine.Option(names = { "--output" }, required = true)
-        private Path output;
+        @CommandLine.Option(names = { "--output" }, required = false)
+        private Path output = Path.of(".");
 
         @Override
         public Integer call() throws Exception {
@@ -339,6 +360,8 @@ public class Main implements Runnable {
             LOG.info("Pull artifact...");
             ContainerRef containerRef = ContainerRef.parse(options.repository);
             Registry registry = Registry.Builder.builder()
+                    .withInsecure(options.insecure)
+                    .withSkipTlsVerify(options.skipTlsVerify)
                     .withAuthProvider(options.username != null && options.password != null ? new UsernamePasswordProvider(options.username, options.password) : new EnvironmentPasswordProvider())
                     .build();
             try {
