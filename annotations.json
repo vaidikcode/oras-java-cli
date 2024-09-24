@@ -1,0 +1,11 @@
+{
+  "$config": {
+    "hello": "world"
+  },
+  "$manifest": {
+    "foo": "bar"
+  },
+  "pom.xml": {
+    "fun": "more cream"
+  }
+}
