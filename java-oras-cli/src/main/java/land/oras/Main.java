@@ -315,6 +315,9 @@ public class Main implements Runnable {
         @CommandLine.Option(names = {"--artifact-type"}, description = "type of the pushed artifact")
         private String artifactType;
 
+        @CommandLine.Option(names = {"--annotation-file"}, description = "path of the annotation file")
+        private Path annotationFile;
+
         @Override
         public Integer call() throws Exception {
             if (options.debug) {
@@ -328,7 +331,11 @@ public class Main implements Runnable {
                     .withAuthProvider(options.username != null && options.password != null ? new UsernamePasswordProvider(options.username, options.password) : new EnvironmentPasswordProvider())
                     .build();
             try {
-                Manifest manifest = registry.pushArtifact(containerRef, artifactType, file);
+                Annotations annotations = Annotations.empty();
+                if (annotationFile != null) {
+                    annotations = Annotations.fromJson(Files.readString(annotationFile));
+                }
+                Manifest manifest = registry.pushArtifact(containerRef, artifactType, annotations, file);
                 if (exportManifestPath != null) {
                     Files.writeString(exportManifestPath, manifest.toJson());
                     LOG.info("Exported manifest to {}", exportManifestPath);
