@@ -359,6 +359,9 @@ public class Main implements Runnable {
         @CommandLine.Option(names = { "--output" }, required = false)
         private Path output = Path.of(".");
 
+        @CommandLine.Option(names = { "--keep-old-files" }, required = false)
+        private boolean keepOldFiles = false;
+
         @Override
         public Integer call() throws Exception {
             if (options.debug) {
@@ -373,7 +376,7 @@ public class Main implements Runnable {
                     .build();
             try {
                 Files.createDirectories(output);
-                registry.pullArtifact(containerRef, output);
+                registry.pullArtifact(containerRef, output, !keepOldFiles);
             }
             catch (OrasException e) {
                 handleException(e);

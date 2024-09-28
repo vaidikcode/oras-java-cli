@@ -53,4 +53,14 @@
         </dependencies>
     </dependencyManagement>
 
+    <repositories>
+        <repository>
+            <id>oras-java</id>
+            <url>https://maven.pkg.github.com/jonesbusy/oras-java</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
 </project>

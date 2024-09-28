@@ -24,7 +24,7 @@ public class ExampleTest {
         Manifest manifest = registry.pushArtifact(ContainerRef.parse("localhost:5000/hello:v1"), artifact);
 
         // Pull
-        registry.pullArtifact(ContainerRef.parse("localhost:5000/hello:v1"), blobDir);
+        registry.pullArtifact(ContainerRef.parse("localhost:5000/hello:v1"), blobDir, true);
 
     }
 
