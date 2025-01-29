@@ -61,15 +61,6 @@
                 <enabled>true</enabled>
             </snapshots>
         </repository>
-
-        <!-- For GitHub action -->
-        <repository>
-            <id>github</id>
-            <url>https://maven.pkg.github.com/oras-project/oras-java</url>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
     </repositories>
 
 </project>

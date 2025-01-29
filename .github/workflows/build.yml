@@ -23,6 +23,12 @@ jobs:
           java-version: 21
           maven-version: 3.9.9
           cache-enabled: true
+          settings-servers: |
+            [{
+                "id": "oras-java",
+                "username": "${{ GITHUB_ACTOR }}",
+                "password": "${{ GITHUB_TOKEN }}"
+            }]
 
       - name: Maven build
         run: mvn --batch-mode --update-snapshots verify
