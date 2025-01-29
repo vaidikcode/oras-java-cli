@@ -24,6 +24,10 @@ jobs:
           maven-version: 3.9.9
           cache-enabled: true
 
+      # Run docker run -d -p 5000:5000 ghcr.io/oras-project/registry:latest before 
+      - name: Start OCI registry
+        run: docker run -d -p 5000:5000 ghcr.io/oras-project/registry:latest
+
       - name: Maven build
         run: mvn --batch-mode --update-snapshots verify
         env:
