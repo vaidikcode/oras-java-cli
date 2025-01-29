@@ -2,6 +2,7 @@ name: PR build
 
 on:
   workflow_call:
+  branches: [main]
   pull_request:
     branches: [main]
 
