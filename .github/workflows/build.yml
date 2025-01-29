@@ -24,5 +24,5 @@ jobs:
           maven-version: 3.9.9
           cache-enabled: true
 
-      - name: Maven deploy
+      - name: Maven build
         run: mvn --batch-mode --update-snapshots verify
