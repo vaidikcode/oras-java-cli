@@ -118,7 +118,7 @@ public class Main implements Runnable {
             Registry registry = Registry.Builder.builder()
                     .withInsecure(options.insecure)
                     .withSkipTlsVerify(options.skipTlsVerify)
-                    .withAuthProvider(options.username != null && options.password != null ? new UsernamePasswordProvider(options.username, options.password) : new FileStoreAuthenticationProvider(containerRef.getRegistry()))                    .build();
+                    .withAuthProvider(options.username != null && options.password != null ? new UsernamePasswordProvider(options.username, options.password) : new FileStoreAuthenticationProvider())                    .build();
             try {
                 registry.deleteBlob(containerRef);
                 LOG.info("Deleted blob");
@@ -151,7 +151,7 @@ public class Main implements Runnable {
             Registry registry = Registry.Builder.builder()
                     .withInsecure(options.insecure)
                     .withSkipTlsVerify(options.skipTlsVerify)
-                    .withAuthProvider(options.username != null && options.password != null ? new UsernamePasswordProvider(options.username, options.password) : new FileStoreAuthenticationProvider(containerRef.getRegistry()))
+                    .withAuthProvider(options.username != null && options.password != null ? new UsernamePasswordProvider(options.username, options.password) : new FileStoreAuthenticationProvider())
                     .build();
             try {
                 Layer layer = registry.uploadBlob(containerRef, file);
@@ -185,7 +185,7 @@ public class Main implements Runnable {
             Registry registry = Registry.Builder.builder()
                     .withInsecure(options.insecure)
                     .withSkipTlsVerify(options.skipTlsVerify)
-                    .withAuthProvider(options.username != null && options.password != null ? new UsernamePasswordProvider(options.username, options.password) : new FileStoreAuthenticationProvider(containerRef.getRegistry()))                    .build();
+                    .withAuthProvider(options.username != null && options.password != null ? new UsernamePasswordProvider(options.username, options.password) : new FileStoreAuthenticationProvider())                    .build();
             try {
                 registry.fetchBlob(containerRef, output.toPath());
                 LOG.info("Fetched blob on {}", output.getAbsolutePath());
@@ -218,7 +218,7 @@ public class Main implements Runnable {
             Registry registry = Registry.Builder.builder()
                     .withInsecure(options.insecure)
                     .withSkipTlsVerify(options.skipTlsVerify)
-                    .withAuthProvider(options.username != null && options.password != null ? new UsernamePasswordProvider(options.username, options.password) : new FileStoreAuthenticationProvider(containerRef.getRegistry()))                    .build();
+                    .withAuthProvider(options.username != null && options.password != null ? new UsernamePasswordProvider(options.username, options.password) : new FileStoreAuthenticationProvider())                    .build();
             try {
                 String location = registry.pushManifest(containerRef, Manifest.fromJson(Files.readString(file)));
                 LOG.info("Pushed manifest to " + location);
@@ -248,7 +248,7 @@ public class Main implements Runnable {
             Registry registry = Registry.Builder.builder()
                     .withInsecure(options.insecure)
                     .withSkipTlsVerify(options.skipTlsVerify)
-                    .withAuthProvider(options.username != null && options.password != null ? new UsernamePasswordProvider(options.username, options.password) : new FileStoreAuthenticationProvider(containerRef.getRegistry()))                    .build();
+                    .withAuthProvider(options.username != null && options.password != null ? new UsernamePasswordProvider(options.username, options.password) : new FileStoreAuthenticationProvider())                    .build();
             try {
                 registry.deleteManifest(containerRef);
                 LOG.info("Deleted manifest");
@@ -281,7 +281,7 @@ public class Main implements Runnable {
             Registry registry = Registry.Builder.builder()
                     .withInsecure(options.insecure)
                     .withSkipTlsVerify(options.skipTlsVerify)
-                    .withAuthProvider(options.username != null && options.password != null ? new UsernamePasswordProvider(options.username, options.password) : new FileStoreAuthenticationProvider(containerRef.getRegistry()))                    .build();
+                    .withAuthProvider(options.username != null && options.password != null ? new UsernamePasswordProvider(options.username, options.password) : new FileStoreAuthenticationProvider())                    .build();
             try {
                 Manifest manifest = registry.getManifest(containerRef);
                 Files.writeString(output.toPath(), manifest.toJson());
@@ -324,7 +324,7 @@ public class Main implements Runnable {
             Registry registry = Registry.Builder.builder()
                     .withInsecure(options.insecure)
                     .withSkipTlsVerify(options.skipTlsVerify)
-                    .withAuthProvider(options.username != null && options.password != null ? new UsernamePasswordProvider(options.username, options.password) : new FileStoreAuthenticationProvider(containerRef.getRegistry()))                    .build();
+                    .withAuthProvider(options.username != null && options.password != null ? new UsernamePasswordProvider(options.username, options.password) : new FileStoreAuthenticationProvider())                    .build();
             try {
                 Annotations annotations = Annotations.empty();
                 if (annotationFile != null) {
@@ -367,7 +367,7 @@ public class Main implements Runnable {
             Registry registry = Registry.Builder.builder()
                     .withInsecure(options.insecure)
                     .withSkipTlsVerify(options.skipTlsVerify)
-                    .withAuthProvider(options.username != null && options.password != null ? new UsernamePasswordProvider(options.username, options.password) : new FileStoreAuthenticationProvider(containerRef.getRegistry()))                    .build();
+                    .withAuthProvider(options.username != null && options.password != null ? new UsernamePasswordProvider(options.username, options.password) : new FileStoreAuthenticationProvider())                    .build();
             try {
                 Files.createDirectories(output);
                 registry.pullArtifact(containerRef, output, !keepOldFiles);
@@ -379,5 +379,5 @@ public class Main implements Runnable {
             return 0;
         }
     }
-
+    
 }
