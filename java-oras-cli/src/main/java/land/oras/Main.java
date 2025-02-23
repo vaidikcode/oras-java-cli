@@ -4,6 +4,7 @@ import land.oras.auth.AuthProvider;
 import land.oras.auth.FileStoreAuthenticationProvider;
 import land.oras.auth.UsernamePasswordProvider;
 import land.oras.exception.OrasException;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
@@ -27,9 +28,11 @@ import java.util.concurrent.Callable;
                 Main.DeleteManifest.class,
                 Main.FetchManifest.class,
 
-                // Mush
+                // Artifacts
                 Main.ArtifactPush.class,
-                Main.ArtifactPull.class
+                Main.ArtifactPull.class,
+
+                Main.ArtifactCopy.class
         },
         description = "Oras Java CLI")
 public class Main implements Runnable {
@@ -104,6 +107,62 @@ public class Main implements Runnable {
     }
 
     /**
+     * Reusable options
+     */
+    @CommandLine.Command(synopsisHeading = "%nUsage:%n",
+            descriptionHeading = "%nDescription:%n",
+            parameterListHeading = "%nParameters:%n",
+            optionListHeading = "%nOptions:%n",
+            commandListHeading = "%nCommands:%n")
+    public static class CopyOptions {
+
+        // Define a positional parameter for the repository name
+        @CommandLine.Parameters(index = "0", description = "The repository to copy from")
+        private String sourceRepository;
+
+        // Define a positional parameter for the repository name
+        @CommandLine.Parameters(index = "1", description = "The repository to copy to")
+        private String targetRepository;
+
+        @CommandLine.Option(names = { "--source-username" }, description = {
+                "Username"})
+        private String sourceUsername;
+
+        @CommandLine.Option(names = { "--source-password" }, description = {
+                "Username"})
+        private String sourcePassword;
+
+        @CommandLine.Option(names = { "--target-username" }, description = {
+                "Username"})
+        private String targetUsername;
+
+        @CommandLine.Option(names = { "--target-password" }, description = {
+                "Username"})
+        private String targetPassword;
+
+        @CommandLine.Option(names = { "--debug" }, description = {
+                "Enable debug mode"})
+        private Boolean debug = false;
+
+        @CommandLine.Option(names = { "--source-insecure" }, description = {
+                "Allow insecure connections over HTTP"})
+        private Boolean sourceInsecure = false;
+
+        @CommandLine.Option(names = { "--source-skip-tls-verify" }, description = {
+                "Skip TLS verification"})
+        private Boolean sourceSkipTlsVerify = false;
+
+        @CommandLine.Option(names = { "--target-insecure" }, description = {
+                "Allow insecure connections over HTTP"})
+        private Boolean targetInsecure = false;
+
+        @CommandLine.Option(names = { "--target-skip-tls-verify" }, description = {
+                "Skip TLS verification"})
+        private Boolean targetSkipTlsVerify = false;
+
+    }
+
+    /**
      * Get the auth provider
      * @param options The options
      * @return The auth provider
@@ -113,6 +172,29 @@ public class Main implements Runnable {
             return new UsernamePasswordProvider(options.username, options.password);
         }
         return new FileStoreAuthenticationProvider();
+    }
+
+    /**
+     * Get the auth provider for copy
+     * @param copyOptions The copy options
+     * @return The auth provider
+     */
+    private static Pair<AuthProvider, AuthProvider> getAuthProvider(CopyOptions copyOptions) {
+        AuthProvider sourceAuthProvider = null;
+        AuthProvider targetAuthProvider = null;
+        if (copyOptions.sourceUsername != null && copyOptions.sourcePassword != null) {
+            sourceAuthProvider = new UsernamePasswordProvider(copyOptions.sourceUsername, copyOptions.sourcePassword);
+        }
+        else {
+            sourceAuthProvider = new FileStoreAuthenticationProvider();
+        }
+        if (copyOptions.targetUsername != null && copyOptions.targetPassword != null) {
+            targetAuthProvider = new UsernamePasswordProvider(copyOptions.targetUsername, copyOptions.targetPassword);
+        }
+        else {
+            targetAuthProvider = new FileStoreAuthenticationProvider();
+        }
+        return Pair.of(sourceAuthProvider, targetAuthProvider);
     }
 
     @CommandLine.Command(name = "blob-delete", description = "Delete a blob")
@@ -306,6 +388,43 @@ public class Main implements Runnable {
                 return 1;
             }
         }
+    }
+
+    @CommandLine.Command(name = "copy", description = "Copy an artifact")
+    public static class ArtifactCopy implements Callable<Integer> {
+        private static final Logger LOG = LoggerFactory.getLogger(ArtifactCopy.class);
+
+        @CommandLine.Mixin
+        private CopyOptions options;
+
+        @Override
+        public Integer call() throws Exception {
+            if (options.debug) {
+                Main.DEBUG = true;
+            }
+            LOG.info("Copy artifact...");
+            ContainerRef sourceContainer = ContainerRef.parse(options.sourceRepository);
+            Registry sourceRegistry = Registry.Builder.builder()
+                    .withInsecure(options.sourceInsecure)
+                    .withSkipTlsVerify(options.sourceSkipTlsVerify)
+                    .withAuthProvider(getAuthProvider(options).getKey()).build();
+
+            ContainerRef targetContainer = ContainerRef.parse(options.targetRepository);
+            Registry targetRegistry = Registry.Builder.builder()
+                    .withInsecure(options.targetInsecure)
+                    .withSkipTlsVerify(options.targetSkipTlsVerify)
+                    .withAuthProvider(getAuthProvider(options).getRight()).build();
+
+            try {
+                sourceRegistry.copy(targetRegistry, sourceContainer, targetContainer);
+            }
+            catch (OrasException e) {
+                handleException(e);
+                return 1;
+            }
+            return 0;
+        }
+
     }
 
     @CommandLine.Command(name = "push", description = "Push an artifact")
