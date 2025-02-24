@@ -11,6 +11,10 @@
     <artifactId>java-oras-cli</artifactId>
     <name>Java ORAS CLI</name>
 
+    <properties>
+        <junit.version>5.12.0</junit.version>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>land.oras.java</groupId>
@@ -34,13 +38,13 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
-            <version>5.11.4</version>
+            <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
-            <version>5.11.4</version>
+            <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
