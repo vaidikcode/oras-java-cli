@@ -15,7 +15,7 @@ mvn clean install
 Docker a local registry
 
 ```shell
-$ docker run -d -p 5000:5000 ghcr.io/oras-project/registry:latest
+$ docker run -d -p 5000:5000 ghcr.io/project-zot/zot-linux-amd64:v2.1.2
 ```
 
 ### Push an Artifact

@@ -249,7 +249,7 @@ public class Main implements Runnable {
                     .withSkipTlsVerify(options.skipTlsVerify)
                     .withAuthProvider(getAuthProvider(options)).build();
             try {
-                Layer layer = registry.uploadBlob(containerRef, file);
+                Layer layer = registry.pushBlob(containerRef, file);
                 LOG.info("Pushed blob with digest " + layer.getDigest());
             }
             catch (OrasException e) {
@@ -315,8 +315,7 @@ public class Main implements Runnable {
                     .withSkipTlsVerify(options.skipTlsVerify)
                     .withAuthProvider(getAuthProvider(options)).build();
             try {
-                String location = registry.pushManifest(containerRef, Manifest.fromJson(Files.readString(file)));
-                LOG.info("Pushed manifest to " + location);
+                registry.pushManifest(containerRef, Manifest.fromJson(Files.readString(file)));
             }
             catch (OrasException e) {
                 handleException(e);
@@ -462,7 +461,7 @@ public class Main implements Runnable {
                 if (annotationFile != null) {
                     annotations = Annotations.fromJson(Files.readString(annotationFile));
                 }
-                Manifest manifest = registry.pushArtifact(containerRef, artifactType, annotations, file);
+                Manifest manifest = registry.pushArtifact(containerRef, artifactType, annotations, LocalPath.of(file));
                 if (exportManifestPath != null) {
                     Files.writeString(exportManifestPath, manifest.toJson());
                     LOG.info("Exported manifest to {}", exportManifestPath);
