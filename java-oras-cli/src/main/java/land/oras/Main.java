@@ -442,7 +442,9 @@ public class Main implements Runnable {
             if (options.debug) {
                 Main.DEBUG = true;
             }
-            Files.createDirectory(output);
+            if (!Files.exists(output)) {
+                Files.createDirectory(output);
+            }
             LOG.info("Copy artifact to OCI layout on %s".formatted(output.toAbsolutePath()));
             ContainerRef container = ContainerRef.parse(options.repository);
             Registry sourceRegistry = Registry.Builder.builder()
