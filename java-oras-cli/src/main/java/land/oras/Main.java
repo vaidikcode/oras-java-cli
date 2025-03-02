@@ -461,7 +461,7 @@ public class Main implements Runnable {
                 if (annotationFile != null) {
                     annotations = Annotations.fromJson(Files.readString(annotationFile));
                 }
-                Manifest manifest = registry.pushArtifact(containerRef, artifactType, annotations, LocalPath.of(file));
+                Manifest manifest = registry.pushArtifact(containerRef, ArtifactType.from(artifactType), annotations, LocalPath.of(file));
                 if (exportManifestPath != null) {
                     Files.writeString(exportManifestPath, manifest.toJson());
                     LOG.info("Exported manifest to {}", exportManifestPath);
