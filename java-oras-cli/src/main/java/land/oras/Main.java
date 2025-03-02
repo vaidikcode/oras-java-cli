@@ -32,7 +32,8 @@ import java.util.concurrent.Callable;
                 Main.ArtifactPush.class,
                 Main.ArtifactPull.class,
 
-                Main.ArtifactCopy.class
+                Main.ArtifactCopy.class,
+                Main.CopyOciLayout.class
         },
         description = "Oras Java CLI")
 public class Main implements Runnable {
@@ -416,6 +417,42 @@ public class Main implements Runnable {
 
             try {
                 sourceRegistry.copy(targetRegistry, sourceContainer, targetContainer);
+            }
+            catch (OrasException e) {
+                handleException(e);
+                return 1;
+            }
+            return 0;
+        }
+
+    }
+
+    @CommandLine.Command(name = "copy-oci", description = "Copy an artifact into OCI layout")
+    public static class CopyOciLayout implements Callable<Integer> {
+        private static final Logger LOG = LoggerFactory.getLogger(CopyOciLayout.class);
+
+        @CommandLine.Mixin
+        private ReusableOptions options;
+
+        @CommandLine.Option(names = { "--output" }, required = false)
+        private Path output = Path.of(".");
+
+        @Override
+        public Integer call() throws Exception {
+            if (options.debug) {
+                Main.DEBUG = true;
+            }
+            Files.createDirectory(output);
+            LOG.info("Copy artifact to OCI layout on %s".formatted(output.toAbsolutePath()));
+            ContainerRef container = ContainerRef.parse(options.repository);
+            Registry sourceRegistry = Registry.Builder.builder()
+                    .withInsecure(options.insecure)
+                    .withSkipTlsVerify(options.skipTlsVerify)
+                    .withAuthProvider(getAuthProvider(options)).build();
+
+
+            try {
+                sourceRegistry.copy(container, output);
             }
             catch (OrasException e) {
                 handleException(e);
