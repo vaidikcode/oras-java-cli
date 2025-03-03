@@ -35,6 +35,7 @@ import java.util.concurrent.Callable;
 
                 // Misc
                 Main.CopyOciLayout.class,
+                Main.AttachCommand.class,
                 Main.DiscoverCommand.class,
 
         },
@@ -222,6 +223,48 @@ public class Main implements Runnable {
             try {
                 registry.deleteBlob(containerRef);
                 LOG.info("Deleted blob");
+            }
+            catch (OrasException e) {
+                handleException(e);
+                return 1;
+            }
+            return 0;
+        }
+    }
+
+    @CommandLine.Command(name = "attach", description = "Attach")
+    public static class AttachCommand implements Callable<Integer> {
+        private static final Logger LOG = LoggerFactory.getLogger(AttachCommand.class);
+
+        @CommandLine.Mixin
+        private ReusableOptions options;
+
+        @CommandLine.Option(names = {"--artifact-type"}, description = "type of the pushed artifact", required = true)
+        private String artifactType;
+
+        @CommandLine.Option(names = { "--file" }, required = true)
+        private Path file;
+
+        @Override
+        public Integer call() throws Exception {
+            if (options.debug) {
+                Main.DEBUG = true;
+            }
+            LOG.info("Attaching artifact...");
+            ContainerRef containerRef = ContainerRef.parse(options.repository);
+            Registry registry = Registry.Builder.builder()
+                    .withInsecure(options.insecure)
+                    .withSkipTlsVerify(options.skipTlsVerify)
+                    .withAuthProvider(getAuthProvider(options)).build();
+            try {
+
+                if (containerRef.getDigest() == null) {
+                    Manifest manifest = registry.getManifest(containerRef);
+                    containerRef = containerRef.withDigest(manifest.getDescriptor().getDigest());
+                }
+
+                Manifest manifest = registry.attachArtifact(containerRef, ArtifactType.from(artifactType), LocalPath.of(file));
+                LOG.info("Added: {}", manifest.getDescriptor().getDigest());
             }
             catch (OrasException e) {
                 handleException(e);
