@@ -31,9 +31,12 @@ import java.util.concurrent.Callable;
                 // Artifacts
                 Main.ArtifactPush.class,
                 Main.ArtifactPull.class,
-
                 Main.ArtifactCopy.class,
-                Main.CopyOciLayout.class
+
+                // Misc
+                Main.CopyOciLayout.class,
+                Main.DiscoverCommand.class,
+
         },
         description = "Oras Java CLI")
 public class Main implements Runnable {
@@ -219,6 +222,44 @@ public class Main implements Runnable {
             try {
                 registry.deleteBlob(containerRef);
                 LOG.info("Deleted blob");
+            }
+            catch (OrasException e) {
+                handleException(e);
+                return 1;
+            }
+            return 0;
+        }
+    }
+
+    @CommandLine.Command(name = "discover", description = "Discover")
+    public static class DiscoverCommand implements Callable<Integer> {
+        private static final Logger LOG = LoggerFactory.getLogger(DiscoverCommand.class);
+
+        @CommandLine.Mixin
+        private ReusableOptions options;
+
+        @Override
+        public Integer call() throws Exception {
+            if (options.debug) {
+                Main.DEBUG = true;
+            }
+            LOG.info("Discovers blob...");
+            ContainerRef containerRef = ContainerRef.parse(options.repository);
+            Registry registry = Registry.Builder.builder()
+                    .withInsecure(options.insecure)
+                    .withSkipTlsVerify(options.skipTlsVerify)
+                    .withAuthProvider(getAuthProvider(options)).build();
+            try {
+
+                if (containerRef.getDigest() == null) {
+                    Manifest manifest = registry.getManifest(containerRef);
+                    containerRef = containerRef.withDigest(manifest.getDescriptor().getDigest());
+                }
+
+                Referrers referrers = registry.getReferrers(containerRef, null);
+                for (ManifestDescriptor descriptor : referrers.getManifests()) {
+                    LOG.info("Referrer: {}", descriptor.getDigest());
+                }
             }
             catch (OrasException e) {
                 handleException(e);
