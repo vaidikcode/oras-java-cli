@@ -17,9 +17,9 @@
 
     <dependencies>
         <dependency>
-            <groupId>land.oras.java</groupId>
+            <groupId>land.oras</groupId>
             <artifactId>oras-java-sdk</artifactId>
-            <version>0.1.9-SNAPSHOT</version>
+            <version>0.2.0</version>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
