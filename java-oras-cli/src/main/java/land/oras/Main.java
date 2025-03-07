@@ -521,6 +521,9 @@ public class Main implements Runnable {
         @CommandLine.Option(names = { "--output" }, required = false)
         private Path output = Path.of(".");
 
+        @CommandLine.Option(names = { "--recursive" }, required = false)
+        private boolean recursive = false;
+
         @Override
         public Integer call() throws Exception {
             if (options.debug) {
@@ -535,10 +538,10 @@ public class Main implements Runnable {
                     .withInsecure(options.insecure)
                     .withSkipTlsVerify(options.skipTlsVerify)
                     .withAuthProvider(getAuthProvider(options)).build();
-
+            OCILayout ociLayout = OCILayout.Builder.builder().defaults(output).build();
 
             try {
-                sourceRegistry.copy(container, output);
+                ociLayout.copy(sourceRegistry, container, recursive);
             }
             catch (OrasException e) {
                 handleException(e);
