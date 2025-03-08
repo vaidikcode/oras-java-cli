@@ -1,7 +1,7 @@
 package land.oras;
 
 import land.oras.auth.AuthProvider;
-import land.oras.auth.FileStoreAuthenticationProvider;
+import land.oras.auth.AuthStoreAuthenticationProvider;
 import land.oras.auth.UsernamePasswordProvider;
 import land.oras.exception.OrasException;
 import org.apache.commons.lang3.tuple.Pair;
@@ -109,6 +109,9 @@ public class Main implements Runnable {
                 "Skip TLS verification"})
         private Boolean skipTlsVerify = false;
 
+        @CommandLine.Option(names = {"--oci-layout"}, description = "Copy an artifact into OCI layout")
+        private Boolean ociLayout = false;
+
     }
 
     /**
@@ -176,7 +179,7 @@ public class Main implements Runnable {
         if (options.username != null && options.password != null) {
             return new UsernamePasswordProvider(options.username, options.password);
         }
-        return new FileStoreAuthenticationProvider();
+        return new AuthStoreAuthenticationProvider();
     }
 
     /**
@@ -191,13 +194,13 @@ public class Main implements Runnable {
             sourceAuthProvider = new UsernamePasswordProvider(copyOptions.sourceUsername, copyOptions.sourcePassword);
         }
         else {
-            sourceAuthProvider = new FileStoreAuthenticationProvider();
+            sourceAuthProvider = new AuthStoreAuthenticationProvider();
         }
         if (copyOptions.targetUsername != null && copyOptions.targetPassword != null) {
             targetAuthProvider = new UsernamePasswordProvider(copyOptions.targetUsername, copyOptions.targetPassword);
         }
         else {
-            targetAuthProvider = new FileStoreAuthenticationProvider();
+            targetAuthProvider = new AuthStoreAuthenticationProvider();
         }
         return Pair.of(sourceAuthProvider, targetAuthProvider);
     }
@@ -322,20 +325,22 @@ public class Main implements Runnable {
         @CommandLine.Option(names = { "--file" }, required = true)
         private Path file;
 
+
         @Override
+        @SuppressWarnings({"unchecked", "rawtypes"})
         public Integer call() throws Exception {
             if (options.debug) {
                 Main.DEBUG = true;
             }
             LOG.info("Pushing blob...");
-            ContainerRef containerRef = ContainerRef.parse(options.repository);
-            Registry registry = Registry.Builder.builder()
+            Ref ref = options.ociLayout ? LayoutRef.parse(options.repository) : ContainerRef.parse(options.repository);
+            OCI oci = options.ociLayout ? OCILayout.Builder.builder().defaults(Path.of(ref.getRepository())).build() : Registry.Builder.builder()
                     .withInsecure(options.insecure)
                     .withSkipTlsVerify(options.skipTlsVerify)
                     .withAuthProvider(getAuthProvider(options)).build();
             try {
-                Layer layer = registry.pushBlob(containerRef, file);
-                LOG.info("Pushed blob with digest " + layer.getDigest());
+                Layer layer = oci.pushBlob(ref, file);
+                LOG.info("Pushed blob with digest {}", layer.getDigest());
             }
             catch (OrasException e) {
                 handleException(e);
