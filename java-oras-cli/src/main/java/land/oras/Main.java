@@ -66,6 +66,7 @@ public class Main implements Runnable {
         }
         else {
             LOG.info("Exception message: {}", r.getMessage());
+            r.printStackTrace();
         }
 
     }
@@ -182,6 +183,18 @@ public class Main implements Runnable {
         return new AuthStoreAuthenticationProvider();
     }
 
+    private static Ref buildRef(ReusableOptions options) {
+        return options.ociLayout ? LayoutRef.parse(options.repository) : ContainerRef.parse(options.repository);
+    }
+
+    @SuppressWarnings("rawtypes")
+    private static OCI buildOci(ReusableOptions options) {
+        return options.ociLayout ? OCILayout.Builder.builder().defaults(Path.of(buildRef(options).getRepository())).build() : Registry.Builder.builder()
+                .withInsecure(options.insecure)
+                .withSkipTlsVerify(options.skipTlsVerify)
+                .withAuthProvider(getAuthProvider(options)).build();
+    }
+
     /**
      * Get the auth provider for copy
      * @param copyOptions The copy options
@@ -219,6 +232,7 @@ public class Main implements Runnable {
             }
             LOG.info("Deleting blob...");
             ContainerRef containerRef = ContainerRef.parse(options.repository);
+            Ref ref = buildRef(options);
             Registry registry = Registry.Builder.builder()
                     .withInsecure(options.insecure)
                     .withSkipTlsVerify(options.skipTlsVerify)
@@ -333,11 +347,8 @@ public class Main implements Runnable {
                 Main.DEBUG = true;
             }
             LOG.info("Pushing blob...");
-            Ref ref = options.ociLayout ? LayoutRef.parse(options.repository) : ContainerRef.parse(options.repository);
-            OCI oci = options.ociLayout ? OCILayout.Builder.builder().defaults(Path.of(ref.getRepository())).build() : Registry.Builder.builder()
-                    .withInsecure(options.insecure)
-                    .withSkipTlsVerify(options.skipTlsVerify)
-                    .withAuthProvider(getAuthProvider(options)).build();
+            Ref ref = buildRef(options);
+            OCI oci = buildOci(options);
             try {
                 Layer layer = oci.pushBlob(ref, file);
                 LOG.info("Pushed blob with digest {}", layer.getDigest());
@@ -361,18 +372,16 @@ public class Main implements Runnable {
         private File output;
 
         @Override
+        @SuppressWarnings({"unchecked", "rawtypes"})
         public Integer call() throws Exception {
             if (options.debug) {
                 Main.DEBUG = true;
             }
             LOG.info("Fetching blob...");
-            ContainerRef containerRef = ContainerRef.parse(options.repository);
-            Registry registry = Registry.Builder.builder()
-                    .withInsecure(options.insecure)
-                    .withSkipTlsVerify(options.skipTlsVerify)
-                    .withAuthProvider(getAuthProvider(options)).build();
+            Ref ref = buildRef(options);
+            OCI oci = buildOci(options);
             try {
-                registry.fetchBlob(containerRef, output.toPath());
+                oci.fetchBlob(ref, output.toPath());
                 LOG.info("Fetched blob on {}", output.getAbsolutePath());
             }
             catch (OrasException e) {
