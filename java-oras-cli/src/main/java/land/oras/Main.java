@@ -260,7 +260,7 @@ public class Main implements Runnable {
         private String artifactType;
 
         @CommandLine.Option(names = { "--file" }, required = true)
-        private Path file;
+        private String file;
 
         @Override
         public Integer call() throws Exception {
@@ -403,18 +403,16 @@ public class Main implements Runnable {
         private Path file;
 
         @Override
+        @SuppressWarnings({"rawtypes", "unchecked"})
         public Integer call() throws Exception {
             if (options.debug) {
                 Main.DEBUG = true;
             }
             LOG.info("Pushing manifest...");
-            ContainerRef containerRef = ContainerRef.parse(options.repository);
-            Registry registry = Registry.Builder.builder()
-                    .withInsecure(options.insecure)
-                    .withSkipTlsVerify(options.skipTlsVerify)
-                    .withAuthProvider(getAuthProvider(options)).build();
+            Ref ref = buildRef(options);
+            OCI oci = buildOci(options);
             try {
-                registry.pushManifest(containerRef, Manifest.fromJson(Files.readString(file)));
+                oci.pushManifest(ref, Manifest.fromJson(Files.readString(file)));
             }
             catch (OrasException e) {
                 handleException(e);
@@ -574,7 +572,7 @@ public class Main implements Runnable {
         private ReusableOptions options;
 
         @CommandLine.Option(names = { "--file" }, required = true)
-        private Path file;
+        private String file;
 
         @CommandLine.Option(names = {"--export-manifest"}, description = "path of the pushed manifest")
         private Path exportManifestPath;
