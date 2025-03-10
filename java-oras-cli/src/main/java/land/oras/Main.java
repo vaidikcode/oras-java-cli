@@ -361,7 +361,7 @@ public class Main implements Runnable {
         }
     }
 
-    @CommandLine.Command(name = "blob-fetch", description = "Fetch a manifest")
+    @CommandLine.Command(name = "blob-fetch", description = "Fetch a blob")
     public static class FetchBlob implements Callable<Integer> {
         private static final Logger LOG = LoggerFactory.getLogger(FetchBlob.class);
 
@@ -586,22 +586,20 @@ public class Main implements Runnable {
         private Path annotationFile;
 
         @Override
+        @SuppressWarnings({"rawtypes", "unchecked"})
         public Integer call() throws Exception {
             if (options.debug) {
                 Main.DEBUG = true;
             }
             LOG.info("Pushing artifact...");
-            ContainerRef containerRef = ContainerRef.parse(options.repository);
-            Registry registry = Registry.Builder.builder()
-                    .withInsecure(options.insecure)
-                    .withSkipTlsVerify(options.skipTlsVerify)
-                    .withAuthProvider(getAuthProvider(options)).build();
+            Ref ref = buildRef(options);
+            OCI oci = buildOci(options);
             try {
                 Annotations annotations = Annotations.empty();
                 if (annotationFile != null) {
                     annotations = Annotations.fromJson(Files.readString(annotationFile));
                 }
-                Manifest manifest = registry.pushArtifact(containerRef, ArtifactType.from(artifactType), annotations, LocalPath.of(file));
+                Manifest manifest = oci.pushArtifact(ref, ArtifactType.from(artifactType), annotations, LocalPath.of(file));
                 if (exportManifestPath != null) {
                     Files.writeString(exportManifestPath, manifest.toJson());
                     LOG.info("Exported manifest to {}", exportManifestPath);
@@ -629,19 +627,17 @@ public class Main implements Runnable {
         private boolean keepOldFiles = false;
 
         @Override
+        @SuppressWarnings({"rawtypes", "unchecked"})
         public Integer call() throws Exception {
             if (options.debug) {
                 Main.DEBUG = true;
             }
             LOG.info("Pull artifact...");
-            ContainerRef containerRef = ContainerRef.parse(options.repository);
-            Registry registry = Registry.Builder.builder()
-                    .withInsecure(options.insecure)
-                    .withSkipTlsVerify(options.skipTlsVerify)
-                    .withAuthProvider(getAuthProvider(options)).build();
+            Ref ref = buildRef(options);
+            OCI oci = buildOci(options);
             try {
                 Files.createDirectories(output);
-                registry.pullArtifact(containerRef, output, !keepOldFiles);
+                oci.pullArtifact(ref, output, !keepOldFiles);
             }
             catch (OrasException e) {
                 handleException(e);
