@@ -84,6 +84,24 @@ public class Main implements Runnable {
             parameterListHeading = "%nParameters:%n",
             optionListHeading = "%nOptions:%n",
             commandListHeading = "%nCommands:%n")
+    public static class OutputOptions {
+
+        @CommandLine.Option(names = { "--output" })
+        private File output;
+
+        @CommandLine.Option(names = { "--descriptor" })
+        private boolean descriptor;
+
+    }
+
+    /**
+     * Reusable options
+     */
+    @CommandLine.Command(synopsisHeading = "%nUsage:%n",
+            descriptionHeading = "%nDescription:%n",
+            parameterListHeading = "%nParameters:%n",
+            optionListHeading = "%nOptions:%n",
+            commandListHeading = "%nCommands:%n")
     public static class ReusableOptions {
 
         // Define a positional parameter for the repository name
@@ -368,8 +386,8 @@ public class Main implements Runnable {
         @CommandLine.Mixin
         private ReusableOptions options;
 
-        @CommandLine.Option(names = { "--output" }, required = true)
-        private File output;
+        @CommandLine.ArgGroup(exclusive = true, multiplicity = "1")
+        private OutputOptions outputOptions;
 
         @Override
         @SuppressWarnings({"unchecked", "rawtypes"})
@@ -377,12 +395,18 @@ public class Main implements Runnable {
             if (options.debug) {
                 Main.DEBUG = true;
             }
-            LOG.info("Fetching blob...");
             Ref ref = buildRef(options);
             OCI oci = buildOci(options);
             try {
-                oci.fetchBlob(ref, output.toPath());
-                LOG.info("Fetched blob on {}", output.getAbsolutePath());
+                if (outputOptions.output != null) {
+                    LOG.info("Fetching blob...");
+                    oci.fetchBlob(ref, outputOptions.output.toPath());
+                    LOG.info("Fetched blob on {}", outputOptions.output.getAbsolutePath());
+                }
+                if (outputOptions.descriptor) {
+                    Descriptor descriptor = oci.fetchBlobDescriptor(ref);
+                    System.out.println(descriptor.toJson());
+                }
             }
             catch (OrasException e) {
                 handleException(e);
@@ -459,24 +483,31 @@ public class Main implements Runnable {
         @CommandLine.Mixin
         private ReusableOptions options;
 
-        @CommandLine.Option(names = { "--output" }, required = true)
-        private File output;
+        @CommandLine.ArgGroup(exclusive = true, multiplicity = "1")
+        private OutputOptions outputOptions;
 
         @Override
         public Integer call() throws Exception {
             if (options.debug) {
                 Main.DEBUG = true;
             }
-            LOG.info("Fetching manifest...");
             ContainerRef containerRef = ContainerRef.parse(options.repository);
             Registry registry = Registry.Builder.builder()
                     .withInsecure(options.insecure)
                     .withSkipTlsVerify(options.skipTlsVerify)
                     .withAuthProvider(getAuthProvider(options)).build();
             try {
-                Manifest manifest = registry.getManifest(containerRef);
-                Files.writeString(output.toPath(), manifest.toJson());
-                LOG.info("Fetched manifest");
+                if (outputOptions.output != null) {
+                    LOG.info("Fetching manifest...");
+                    Manifest manifest = registry.getManifest(containerRef);
+                    Files.writeString(outputOptions.output.toPath(), manifest.toJson());
+                    LOG.info("Fetched manifest");
+                }
+                if (outputOptions.descriptor) {
+                    Descriptor descriptor = registry.fetchBlobDescriptor(containerRef);
+                    System.out.println(descriptor.toJson());
+                }
+
                 return 0;
             }
             catch (OrasException e) {
