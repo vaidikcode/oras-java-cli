@@ -405,7 +405,7 @@ public class Main implements Runnable {
                 }
                 if (outputOptions.descriptor) {
                     Descriptor descriptor = oci.fetchBlobDescriptor(ref);
-                    System.out.println(descriptor.toJson());
+                    System.out.print(descriptor.toJson());
                 }
             }
             catch (OrasException e) {
@@ -502,8 +502,8 @@ public class Main implements Runnable {
                     LOG.info("Fetched manifest");
                 }
                 if (outputOptions.descriptor) {
-                    Descriptor descriptor = oci.getManifest(ref);
-                    System.out.println(descriptor.toJson());
+                    Manifest manifest = oci.getManifest(ref);
+                    System.out.print(manifest.getJson());
                 }
 
                 return 0;
