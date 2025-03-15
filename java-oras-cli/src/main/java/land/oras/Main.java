@@ -487,24 +487,22 @@ public class Main implements Runnable {
         private OutputOptions outputOptions;
 
         @Override
+        @SuppressWarnings({"rawtypes", "unchecked"})
         public Integer call() throws Exception {
             if (options.debug) {
                 Main.DEBUG = true;
             }
-            ContainerRef containerRef = ContainerRef.parse(options.repository);
-            Registry registry = Registry.Builder.builder()
-                    .withInsecure(options.insecure)
-                    .withSkipTlsVerify(options.skipTlsVerify)
-                    .withAuthProvider(getAuthProvider(options)).build();
+            Ref ref = buildRef(options);
+            OCI oci = buildOci(options);
             try {
                 if (outputOptions.output != null) {
                     LOG.info("Fetching manifest...");
-                    Manifest manifest = registry.getManifest(containerRef);
+                    Manifest manifest = oci.getManifest(ref);
                     Files.writeString(outputOptions.output.toPath(), manifest.toJson());
                     LOG.info("Fetched manifest");
                 }
                 if (outputOptions.descriptor) {
-                    Descriptor descriptor = registry.fetchBlobDescriptor(containerRef);
+                    Descriptor descriptor = oci.getManifest(ref);
                     System.out.println(descriptor.toJson());
                 }
 
